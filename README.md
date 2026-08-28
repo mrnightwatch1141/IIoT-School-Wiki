@@ -14,3 +14,9 @@ Documentare il funzionamento del materiale fornito attraverso dei progetti legat
 - Milesight Indoor Ambience Monitoring Sensor LoRaWAN x1
 - CompuStore kit 37 sensori per Arduino x1
 - CanaKit (Raspberry + Arduino) x1
+
+## Struttura della Wiki
+La Wiki può essere consultata nei seguenti *tre* formati:
+- [https://github.com/mrnightwatch1141/IIoT-School-Wiki/wiki]GitHub
+- PDF
+- Pagina Web
