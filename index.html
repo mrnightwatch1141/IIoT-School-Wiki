@@ -27,6 +27,7 @@ SOFTWARE.
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Home - IIoT School Wiki </title>
+    <link rel="stylesheet" href="css/style.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
 </head>
 <body>
@@ -66,6 +67,47 @@ SOFTWARE.
             </div>
         </div>
     </nav>
+
+    <!-- Sidenav -->
+    <div class="flex-shrink-0 p-3" style="width: 280px">
+        <a class="d-flex align-items-center pb-3 mb-3 link-body-emphasis text-decoration-none border-bottom">
+          <span class="fs-5 fw-semibold">Esplora</span>
+        </a>
+
+        <ul class="list-unstyled ps-0">
+            <!-- Home -->
+            <li class="mb-1">
+                <button class="btn btn-toggle d-inline-flex align-items-center rounded border-0 collapsed" data-bs-toggle="collapse" data-bs-target="#home-collapse" aria-expanded="true">
+                    Home
+                </button>
+
+                <div class="collapse show" id="home-collapse">
+                    <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
+                        <!-- Panoramica -->
+                        <li>
+                            <a href="#" class="link-body-emphasis d-inline-flex text-decoration-none rounded">
+                                Panoramica
+                            </a>
+                        </li>
+
+                        <!-- Aggiornamenti -->
+                        <li>
+                            <a href="#" class="link-body-emphasis d-inline-flex text-decoration-none rounded">
+                                Aggiornamenti
+                            </a>
+                        </li>
+
+                        <!-- Crediti -->
+                        <li>
+                            <a href="#" class="link-body-emphasis d-inline-flex text-decoration-none rounded">
+                                Crediti
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </li>
+        </ul>
+    </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
 </body>
 </html>
