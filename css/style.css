@@ -1,22 +1,55 @@
+/* 
+MIT License
+
+Copyright (c) 2026 mr.nightwatch
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE. 
+*/
+
+/* Generale */
+body, html {
+    transition: 0.5s;
+}
 body {
   min-height: 100vh;
   min-height: -webkit-fill-available;
 }
-
 html {
   height: -webkit-fill-available;
 }
 
-main {
-  height: 100vh;
-  height: -webkit-fill-available;
-  max-height: 100vh;
-  overflow-x: auto;
-  overflow-y: hidden;
+/* Navbar */
+nav {
+  transition: all 0.5s;
 }
 
-.dropdown-toggle { outline: 0; }
 
+/* Sidebar ad albero */
+span {
+  transition: all 0.5s;
+}
+ul {
+  transition: all 0.5s;
+}
+.dropdown-toggle { 
+  outline: 0;
+}
 .btn-toggle {
   padding: .25rem .5rem;
   font-weight: 600;
@@ -28,7 +61,6 @@ main {
   color: rgba(var(--bs-emphasis-color-rgb), .85);
   background-color: var(--bs-tertiary-bg);
 }
-
 .btn-toggle::before {
   width: 1.25em;
   line-height: 0;
@@ -36,11 +68,9 @@ main {
   transition: transform .35s ease;
   transform-origin: .5em 50%;
 }
-
 [data-bs-theme="dark"] .btn-toggle::before {
   content: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='rgba%28255,255,255,.5%29' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M5 14l6-6-6-6'/%3e%3c/svg%3e");
 }
-
 .btn-toggle[aria-expanded="true"] {
   color: rgba(var(--bs-emphasis-color-rgb), .85);
 }
@@ -52,12 +82,62 @@ main {
   padding: .1875rem .5rem;
   margin-top: .125rem;
   margin-left: 1.25rem;
+  transition: all 1s;
 }
 .btn-toggle-nav a:hover,
 .btn-toggle-nav a:focus {
   background-color: var(--bs-tertiary-bg);
 }
-
 .scrollarea {
   overflow-y: auto;
+}
+#sidenav {
+  width: 300px;
+  flex: 0 0 300px;
+}
+@media (max-width: 767.98px) {
+  #pagina {
+    flex-direction: column;
+  }
+ 
+  #sidenav {
+    width: 100%;
+    flex: 0 0 auto;
+  }
+}
+
+/* Corpo della pagina */
+#pagina {
+  gap: 24px; /* 1.5rem */
+}
+#home {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+article {
+  scroll-margin-top: 120px;
+}
+
+/* Card */
+.card-img-top {
+    height: 180px;
+    object-fit: cover;
+}
+.card.w-100 {
+    transition: 0.3s;
+}
+.card.w-100:hover{
+    box-shadow: 5px 5px 5px rgb(0, 30, 165);
+    transform: scale(1.05);
+}
+.card {
+    transition: 0.5s;
+}
+.list-group, .list-group-item {
+    transition: 0.5s;
+}
+
+/* Footer */
+footer {
+  padding: 10px;
 }
