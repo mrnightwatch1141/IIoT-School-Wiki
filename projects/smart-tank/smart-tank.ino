@@ -139,21 +139,33 @@ void loop() {
         digitalWrite(RED_LED, LOW);
         digitalWrite(GREEN_LED, HIGH);
         digitalWrite(BLUE_LED, LOW);
+
+        tone(BUZZER_PIN, 150);
+        delay(250);
+        noTone(BUZZER_PIN);
+        delay(150);
+        tone(BUZZER_PIN, 250);
+        delay(250);
         noTone(BUZZER_PIN);
       }
-    }
-    // Trabocco
-    else if (input == "ALARM_HIGH") {
-      digitalWrite(RED_LED, LOW);
-      digitalWrite(GREEN_LED, LOW);
-      digitalWrite(BLUE_LED, HIGH);
-      tone(BUZZER_PIN, 1500);
-    }
-    else if (input == "ALARM_LOW") {
-      digitalWrite(RED_LED, LOW);
-      digitalWrite(GREEN_LED, HIGH);
-      digitalWrite(BLUE_LED, LOW);
-      tone(BUZZER_PIN, 500);
+      // Trabocco
+      else if (input >= 100) {
+        digitalWrite(RED_LED, LOW);
+        digitalWrite(GREEN_LED, LOW);
+        digitalWrite(BLUE_LED, HIGH);
+        tone(BUZZER_PIN, 1500);
+        delay(1000);
+        noTone(BUZZER_PIN);
+      }
+      // Insufficiente
+      else {
+        digitalWrite(RED_LED, HIGH);
+        digitalWrite(GREEN_LED, LOW);
+        digitalWrite(BLUE_LED, LOW);
+        tone(BUZZER_PIN, 500);
+        delay(1000);
+        noTone(BUZZER_PIN);
+      }
     }
   }
 }
