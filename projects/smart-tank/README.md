@@ -11,6 +11,7 @@ Recipiente d'acqua intelligente
   * Bottone KY-004;
   * Sensore della temperatura KY-001 18B20;
   * Buzzer Passivo KY-006.
+- 3x Resistenze da 220 Ohm;
 - Raspberry Pi 2 Model B:
   * Ricevitore WiFi USB;
   * Case in plastica.
