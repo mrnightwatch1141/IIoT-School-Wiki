@@ -22,7 +22,7 @@ DallasTemperature sensors(&oneWire);
 // Button
 const int BUTTON_PIN = 13;
 // IR
-const int IR_RECEIVE_PIN = 4;
+const int IR_RECEIVE_PIN = 7;
 
 void setup() {
   // put your setup code here, to run once:
