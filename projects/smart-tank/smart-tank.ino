@@ -177,8 +177,9 @@ void loop() {
   /*
   Ricezione della stringa dal server Node-RED:
   il server Node-RED riceve i dati formattati in JSON dal Gateway
-  e in base al campo distance invia una stringa LEVEL che l'Arduino
-  interpreterà.
+  e in base al campo "distance" del sensore ultrasuoni invia una
+  stringa LEVEL (contentente la percentuale) che l'Arduino
+  interpreterà come livello dell'acqua.
   */
   String input;
   int level;
