@@ -17,6 +17,6 @@ Documentare il funzionamento del materiale fornito attraverso dei progetti legat
 
 ## Struttura della Wiki
 La Wiki può essere consultata nei seguenti *tre* formati:
-- [GitHub](https://github.com/mrnightwatch1141/IIoT-School-Wiki/wiki)
+- [GitHub](https://github.com/mrnightwatch1141/IIoT-School-Wiki/wiki/1.-Home)
 - PDF
 - Pagina Web
