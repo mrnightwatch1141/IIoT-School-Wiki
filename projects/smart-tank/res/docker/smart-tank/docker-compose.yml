@@ -1,0 +1,46 @@
+services:
+#  mosquitto:
+#    image: eclipse-mosquitto:latest
+#    container_name: mqtt_broker-mosquitto
+#    restart: always
+#    ports:
+#      - "1883:1883"
+#      - "9001:9001"
+#    volumes:
+#      - ./mosquitto/config:/mosquitto/config
+#      - ./mosquitto/data:/mosquitto/data
+#      - ./mosquitto/log:/mosquitto/log
+
+  nodered:
+    image: nodered/node-red:latest
+    container_name: node-red
+    restart: always
+    privileged: true
+    ports:
+      - "1880:1880"
+    volumes:
+      - ./node-red-data:/data
+    devices:
+      - "/dev/ttyACM0:/dev/ttyACM0" # Arduino
+    depends_on:
+      - influxdb
+
+  influxdb:
+    image: influxdb:2.7
+    container_name: influxdb
+    restart: always
+    ports:
+      - "8086:8086"
+    volumes:
+      - ./influxdb-data:/var/lib/influxdb2
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    restart: always
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./grafana-data:/var/lib/grafana
+    depends_on:
+      - influxdb

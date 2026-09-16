@@ -1,0 +1,518 @@
+[
+    {
+        "id": "b9a028dd32a1df21",
+        "type": "tab",
+        "label": "Smart Tank Flow",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "be15a672645cc445",
+        "type": "mqtt in",
+        "z": "b9a028dd32a1df21",
+        "name": "LoRaWAN Gateway",
+        "topic": "milesight/uplink",
+        "qos": "0",
+        "datatype": "auto-detect",
+        "broker": "28eabac030a8c20c",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 470,
+        "y": 260,
+        "wires": [
+            [
+                "524adb0f29677adf",
+                "51a4a84073eb67d2"
+            ]
+        ]
+    },
+    {
+        "id": "51a4a84073eb67d2",
+        "type": "function",
+        "z": "b9a028dd32a1df21",
+        "name": "decoder",
+        "func": "/*\nAngelo De Florio\ndecoder.js\n*/\n\n// Costanti serbatoio\nconst EMPTY_DIST  = 141; // mm\nconst TANK_HEIGHT =  55; // mm\nconst FULL_DIST   = EMPTY_DIST - TANK_HEIGHT;\n\n// Ricezione del payload\nlet distance = Number(msg.payload.distance);\n\nif (Number.isFinite(distance) && distance > 0) {\n    let water_lvl  = Math.max(0, Math.min(TANK_HEIGHT, EMPTY_DIST - distance));\n    let percentage = Math.round((water_lvl / TANK_HEIGHT) * 100);\n\n    node.status(\n        {\n            fill: \"green\",\n            shape: \"dot\",\n            text: `${distance} mm - ${percentage}%`\n        }\n    );\n\n    // InfluxDB\n    const metrics = {\n        measurement: \"water_tank\",\n        payload: {\n            distance: distance,\n            water_lvl: water_lvl,\n            percentage: percentage\n        },\n        tags: {\n            location: \"main_tank\",\n            sensor: \"Milesight EM310-UDL-868M\"\n        },\n        timestamp: new Date()\n    };\n\n\n    // Arduino\n    let arduinoCmd = {};\n    arduinoCmd.payload = `LEVEL:${percentage}\\n`;\n\n    // Smart Socket (DA VEDERE)\n    let socketCmd = {};\n    if (percentage >= 95) {\n        socketCmd.payload = JSON.stringify({\"power\":\"OFF\"});\n    }\n\n    return [metrics, arduinoCmd];\n}\n\nreturn null;",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 740,
+        "y": 260,
+        "wires": [
+            [
+                "2d3483dfdbdc9ccc",
+                "b403bfa63c90c00a"
+            ],
+            [
+                "3e5cdfe16b43c039",
+                "9158acf805dfe91e"
+            ]
+        ]
+    },
+    {
+        "id": "3e5cdfe16b43c039",
+        "type": "serial out",
+        "z": "b9a028dd32a1df21",
+        "name": "Arduino",
+        "serial": "be7ab2eae4f8e1aa",
+        "x": 1020,
+        "y": 280,
+        "wires": []
+    },
+    {
+        "id": "8117bf837ba24996",
+        "type": "mqtt out",
+        "z": "b9a028dd32a1df21",
+        "d": true,
+        "name": "",
+        "topic": "",
+        "qos": "",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "28eabac030a8c20c",
+        "x": 1350,
+        "y": 320,
+        "wires": []
+    },
+    {
+        "id": "2d3483dfdbdc9ccc",
+        "type": "influxdb out",
+        "z": "b9a028dd32a1df21",
+        "influxdb": "113f4bd1c734be2d",
+        "name": "InfluxDB",
+        "measurement": "water_lvl",
+        "precision": "",
+        "retentionPolicy": "",
+        "database": "database",
+        "precisionV18FluxV20": "ms",
+        "retentionPolicyV18Flux": "",
+        "org": "my-org",
+        "bucket": "tank_data",
+        "x": 1020,
+        "y": 240,
+        "wires": []
+    },
+    {
+        "id": "663cb53306231913",
+        "type": "serial out",
+        "z": "b9a028dd32a1df21",
+        "name": "",
+        "serial": "be7ab2eae4f8e1aa",
+        "x": 720,
+        "y": 540,
+        "wires": []
+    },
+    {
+        "id": "6969faac0c816cf1",
+        "type": "inject",
+        "z": "b9a028dd32a1df21",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "LEVEL:50\\n",
+        "payloadType": "str",
+        "x": 510,
+        "y": 540,
+        "wires": [
+            [
+                "663cb53306231913",
+                "5253015111d5d59c"
+            ]
+        ]
+    },
+    {
+        "id": "839259e7a4d378bf",
+        "type": "inject",
+        "z": "b9a028dd32a1df21",
+        "name": "InfluxDB TEST",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "{\"distance\":220,\"water_lvl\":70,\"percentage\":30}",
+        "payloadType": "json",
+        "x": 520,
+        "y": 620,
+        "wires": [
+            [
+                "4c6b63228a96ea7a"
+            ]
+        ]
+    },
+    {
+        "id": "4c6b63228a96ea7a",
+        "type": "influxdb out",
+        "z": "b9a028dd32a1df21",
+        "influxdb": "113f4bd1c734be2d",
+        "name": "InfluxDB",
+        "measurement": "water_lvl",
+        "precision": "",
+        "retentionPolicy": "",
+        "database": "database",
+        "precisionV18FluxV20": "ms",
+        "retentionPolicyV18Flux": "",
+        "org": "my-org",
+        "bucket": "tank_data",
+        "x": 720,
+        "y": 620,
+        "wires": []
+    },
+    {
+        "id": "524adb0f29677adf",
+        "type": "debug",
+        "z": "b9a028dd32a1df21",
+        "name": "DEBUG Gateway",
+        "active": true,
+        "tosidebar": true,
+        "console": true,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 800,
+        "y": 420,
+        "wires": []
+    },
+    {
+        "id": "9158acf805dfe91e",
+        "type": "debug",
+        "z": "b9a028dd32a1df21",
+        "name": "DEBUG Arduino",
+        "active": true,
+        "tosidebar": true,
+        "console": true,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1050,
+        "y": 340,
+        "wires": []
+    },
+    {
+        "id": "b403bfa63c90c00a",
+        "type": "debug",
+        "z": "b9a028dd32a1df21",
+        "name": "DEBUG InfluxDB",
+        "active": true,
+        "tosidebar": true,
+        "console": true,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1050,
+        "y": 180,
+        "wires": []
+    },
+    {
+        "id": "ad8363f63031ecd0",
+        "type": "ui-button",
+        "z": "b9a028dd32a1df21",
+        "group": "74212e07195f9d85",
+        "name": "Invia test",
+        "label": "Invia test",
+        "order": 1,
+        "width": 0,
+        "height": 0,
+        "emulateClick": false,
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "",
+        "className": "",
+        "icon": "",
+        "iconPosition": "left",
+        "payload": "LEVEL:50\\n",
+        "payloadType": "str",
+        "topic": "",
+        "topicType": "str",
+        "buttonColor": "",
+        "textColor": "",
+        "iconColor": "",
+        "enableClick": true,
+        "enablePointerdown": false,
+        "pointerdownPayload": "",
+        "pointerdownPayloadType": "str",
+        "enablePointerup": false,
+        "pointerupPayload": "",
+        "pointerupPayloadType": "str",
+        "x": 1100,
+        "y": 600,
+        "wires": [
+            [
+                "3f85afd35968c2e8"
+            ]
+        ]
+    },
+    {
+        "id": "0b319fdc51349d3e",
+        "type": "ui-control",
+        "z": "b9a028dd32a1df21",
+        "name": "Dashboard",
+        "ui": "d42540cdf04abf58",
+        "events": "all",
+        "x": 890,
+        "y": 680,
+        "wires": [
+            [
+                "ad8363f63031ecd0"
+            ]
+        ]
+    },
+    {
+        "id": "8f0914faf37c5eb3",
+        "type": "serial out",
+        "z": "b9a028dd32a1df21",
+        "name": "",
+        "serial": "be7ab2eae4f8e1aa",
+        "x": 1500,
+        "y": 600,
+        "wires": []
+    },
+    {
+        "id": "3e98a5a9fd193470",
+        "type": "debug",
+        "z": "b9a028dd32a1df21",
+        "name": "DEBUG Arduino",
+        "active": true,
+        "tosidebar": true,
+        "console": true,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1510,
+        "y": 640,
+        "wires": []
+    },
+    {
+        "id": "5253015111d5d59c",
+        "type": "debug",
+        "z": "b9a028dd32a1df21",
+        "name": "DEBUG Arduino",
+        "active": true,
+        "tosidebar": true,
+        "console": true,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 730,
+        "y": 580,
+        "wires": []
+    },
+    {
+        "id": "3f85afd35968c2e8",
+        "type": "function",
+        "z": "b9a028dd32a1df21",
+        "name": "send_test",
+        "func": "let arduinoCmd = {};\narduinoCmd.payload = msg.payload;\nreturn arduinoCmd;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1300,
+        "y": 600,
+        "wires": [
+            [
+                "8f0914faf37c5eb3",
+                "3e98a5a9fd193470"
+            ]
+        ]
+    },
+    {
+        "id": "28eabac030a8c20c",
+        "type": "mqtt-broker",
+        "name": "Local MQTT Broker",
+        "broker": "172.18.0.2",
+        "port": 1883,
+        "clientid": "nodered-gateway",
+        "autoConnect": true,
+        "usetls": false,
+        "protocolVersion": 4,
+        "keepalive": 60,
+        "cleansession": true,
+        "autoUnsubscribe": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthRetain": "false",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closeRetain": "false",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willRetain": "false",
+        "willPayload": "",
+        "willMsg": {},
+        "userProps": "",
+        "sessionExpiry": ""
+    },
+    {
+        "id": "be7ab2eae4f8e1aa",
+        "type": "serial-port",
+        "name": "Arduino",
+        "serialport": "/dev/ttyACM0",
+        "serialbaud": "9600",
+        "databits": 8,
+        "parity": "none",
+        "stopbits": 1,
+        "waitfor": "",
+        "dtr": "none",
+        "rts": "none",
+        "cts": "none",
+        "dsr": "none",
+        "newline": "\\n",
+        "bin": "false",
+        "out": "char",
+        "addchar": "",
+        "responsetimeout": 10000
+    },
+    {
+        "id": "113f4bd1c734be2d",
+        "type": "influxdb",
+        "hostname": "192.168.1.13",
+        "port": 8086,
+        "protocol": "http",
+        "database": "database",
+        "name": "InfluxDB Local Server",
+        "usetls": false,
+        "tls": "",
+        "influxdbVersion": "2.0",
+        "url": "http://192.168.1.13:8086",
+        "timeout": "30",
+        "rejectUnauthorized": false
+    },
+    {
+        "id": "74212e07195f9d85",
+        "type": "ui-group",
+        "name": "Test Arduino",
+        "page": "b7900a6c6031284e",
+        "width": 6,
+        "height": 1,
+        "order": 1,
+        "showTitle": true,
+        "className": "",
+        "visible": "true",
+        "disabled": "false",
+        "groupType": "default"
+    },
+    {
+        "id": "d42540cdf04abf58",
+        "type": "ui-base",
+        "name": "Smart Tank UI",
+        "path": "/dashboard",
+        "appIcon": "",
+        "includeClientData": true,
+        "acceptsClientConfig": [
+            "ui-notification",
+            "ui-control"
+        ],
+        "showPathInSidebar": false,
+        "headerContent": "page",
+        "navigationStyle": "default",
+        "titleBarStyle": "default",
+        "showReconnectNotification": true,
+        "notificationDisplayTime": 1,
+        "showDisconnectNotification": true,
+        "allowInstall": false
+    },
+    {
+        "id": "b7900a6c6031284e",
+        "type": "ui-page",
+        "name": "Smart Tank Dashboard",
+        "ui": "d42540cdf04abf58",
+        "path": "/dashboard",
+        "icon": "home",
+        "layout": "grid",
+        "theme": "1d3355b619807ebc",
+        "breakpoints": [
+            {
+                "name": "Default",
+                "px": "0",
+                "cols": "3"
+            },
+            {
+                "name": "Tablet",
+                "px": "576",
+                "cols": "6"
+            },
+            {
+                "name": "Small Desktop",
+                "px": "768",
+                "cols": "9"
+            },
+            {
+                "name": "Desktop",
+                "px": "1024",
+                "cols": "12"
+            }
+        ],
+        "order": 1,
+        "className": "",
+        "visible": "true",
+        "disabled": "false"
+    },
+    {
+        "id": "1d3355b619807ebc",
+        "type": "ui-theme",
+        "name": "Default Theme",
+        "colors": {
+            "surface": "#18191b",
+            "primary": "#0d74ce",
+            "bgPage": "#111113",
+            "groupBg": "#212225",
+            "groupOutline": "#363a3f"
+        },
+        "sizes": {
+            "density": "default",
+            "pagePadding": "12px",
+            "groupGap": "12px",
+            "groupBorderRadius": "4px",
+            "widgetGap": "12px"
+        }
+    },
+    {
+        "id": "3d3e1a59f029ee94",
+        "type": "global-config",
+        "env": [],
+        "modules": {
+            "node-red-node-serialport": "2.0.3",
+            "node-red-contrib-influxdb": "0.7.0",
+            "@flowfuse/node-red-dashboard": "1.31.0"
+        }
+    }
+]
