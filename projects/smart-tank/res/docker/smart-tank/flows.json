@@ -11,7 +11,7 @@
         "id": "be15a672645cc445",
         "type": "mqtt in",
         "z": "b9a028dd32a1df21",
-        "name": "LoRaWAN Gateway",
+        "name": "Ultrasonic Sensor LoRaWAN",
         "topic": "milesight/uplink",
         "qos": "0",
         "datatype": "auto-detect",
@@ -20,7 +20,7 @@
         "rap": true,
         "rh": 0,
         "inputs": 0,
-        "x": 470,
+        "x": 500,
         "y": 260,
         "wires": [
             [
@@ -34,7 +34,7 @@
         "type": "function",
         "z": "b9a028dd32a1df21",
         "name": "decoder",
-        "func": "/*\nAngelo De Florio\ndecoder.js\n*/\n\n// Costanti serbatoio\nconst EMPTY_DIST  = 141; // mm\nconst TANK_HEIGHT =  55; // mm\nconst FULL_DIST   = EMPTY_DIST - TANK_HEIGHT;\n\n// Ricezione del payload\nlet distance = Number(msg.payload.distance);\n\nif (Number.isFinite(distance) && distance > 0) {\n    let water_lvl  = Math.max(0, Math.min(TANK_HEIGHT, EMPTY_DIST - distance));\n    let percentage = Math.round((water_lvl / TANK_HEIGHT) * 100);\n\n    node.status(\n        {\n            fill: \"green\",\n            shape: \"dot\",\n            text: `${distance} mm - ${percentage}%`\n        }\n    );\n\n    // InfluxDB\n    const metrics = {\n        measurement: \"water_tank\",\n        payload: {\n            distance: distance,\n            water_lvl: water_lvl,\n            percentage: percentage\n        },\n        tags: {\n            location: \"main_tank\",\n            sensor: \"Milesight EM310-UDL-868M\"\n        },\n        timestamp: new Date()\n    };\n\n\n    // Arduino\n    let arduinoCmd = {};\n    arduinoCmd.payload = `LEVEL:${percentage}\\n`;\n\n    // Smart Socket (DA VEDERE)\n    let socketCmd = {};\n    if (percentage >= 95) {\n        socketCmd.payload = JSON.stringify({\"power\":\"OFF\"});\n    }\n\n    return [metrics, arduinoCmd];\n}\n\nreturn null;",
+        "func": "/*\nAngelo De Florio\ndecoder.js\n\nCostanti:\nEMPTY_DIST  = Distanza misurata dal sensore\n              quando il serbatoio è completamente vuoto\nTANK_HEIGHT = L'altezza utile del contenitore\nFULL_DIST   = Calcolata come differenza, rappresenta\n              la distanza minima dal sensore quando il\n              serbatoio è pieno\n*/\n\n// Costanti serbatoio\nconst EMPTY_DIST  = 322; // mm\nconst TANK_HEIGHT = 160; // mm\nconst FULL_DIST   = EMPTY_DIST - TANK_HEIGHT;\n\n/*\nRicezione del payload ed estrazione del campo \"distance\"\nconvertendolo in un numero\n*/\nlet distance = Number(msg.payload.distance);\n// Debug del valore ricevuto\nnode.warn(\"Distanza rilevata: \" + distance);\n\n/*\nSe il campo \"distance\" ricevuto dal JSON è valido\ne se è maggiore di 0 allora...\n*/\nif (Number.isFinite(distance) && distance > 0) {\n    /*\n    Calcola l'altezza dell'acqua sottraendo la distanza attuale del\n    sensore dalla distanza di serbatoio vuoto.\n    Le funzioni Math.max e Math.min servono a limitare il valore dentro\n    un intervallo preciso. Serve a evitare che il calcolo dia risultati\n    fisicamente impossibili a causa di letture anomale\n    del sensore a ultrasuoni.\n    */\n    let water_lvl  = Math.max(0, Math.min(TANK_HEIGHT, EMPTY_DIST - distance));\n    // Converte il livello in una percentuale intera di riempimento rispetto all'altezza totale\n    let percentage = Math.round((water_lvl / TANK_HEIGHT) * 100);\n\n    /*\n    Aggiorna l'interfaccia grafica del nodo in Node-RED\n    mostrando un puntino verde con il testo contenente\n    la distanza e la percentuale corrente\n    */\n    node.status(\n        {\n            fill: \"green\",\n            shape: \"dot\",\n            text: `${distance} mm - ${percentage}%`\n        }\n    );\n\n    /*\n    InfluxDB:\n    Prepara una struttura JSON da inviare al backend\n    di InfluxDB, inserendo i dati delle misurazioni\n    */\n    const metrics = {\n        measurement: \"water_tank\",\n        payload: {\n            distance: distance,\n            water_lvl: water_lvl,\n            percentage: percentage\n        },\n        tags: {\n            location: \"main_tank\",\n            sensor: \"Milesight EM310-UDL-868M\"\n        },\n        timestamp: new Date()\n    };\n\n\n    /*\n    Arduino:\n    Crea una stringa formattata con il livello in percentuale\n    intera da inviare via seriale ad Arduino\n    */\n    let arduinoCmd = {};\n    arduinoCmd.payload = `LEVEL:${percentage}\\n`;\n\n    /*\n    Restituisce un array di oggetti che corrispondono\n    alle uscite per i due nodi\n    */\n    return [metrics, arduinoCmd];\n}\n\nreturn null;",
         "outputs": 2,
         "timeout": 0,
         "noerr": 0,
@@ -65,25 +65,6 @@
         "wires": []
     },
     {
-        "id": "8117bf837ba24996",
-        "type": "mqtt out",
-        "z": "b9a028dd32a1df21",
-        "d": true,
-        "name": "",
-        "topic": "",
-        "qos": "",
-        "retain": "",
-        "respTopic": "",
-        "contentType": "",
-        "userProps": "",
-        "correl": "",
-        "expiry": "",
-        "broker": "28eabac030a8c20c",
-        "x": 1350,
-        "y": 320,
-        "wires": []
-    },
-    {
         "id": "2d3483dfdbdc9ccc",
         "type": "influxdb out",
         "z": "b9a028dd32a1df21",
@@ -107,8 +88,8 @@
         "z": "b9a028dd32a1df21",
         "name": "",
         "serial": "be7ab2eae4f8e1aa",
-        "x": 720,
-        "y": 540,
+        "x": 580,
+        "y": 500,
         "wires": []
     },
     {
@@ -128,8 +109,8 @@
         "topic": "",
         "payload": "LEVEL:50\\n",
         "payloadType": "str",
-        "x": 510,
-        "y": 540,
+        "x": 290,
+        "y": 500,
         "wires": [
             [
                 "663cb53306231913",
@@ -154,8 +135,8 @@
         "topic": "",
         "payload": "{\"distance\":220,\"water_lvl\":70,\"percentage\":30}",
         "payloadType": "json",
-        "x": 520,
-        "y": 620,
+        "x": 300,
+        "y": 580,
         "wires": [
             [
                 "4c6b63228a96ea7a"
@@ -176,15 +157,15 @@
         "retentionPolicyV18Flux": "",
         "org": "my-org",
         "bucket": "tank_data",
-        "x": 720,
-        "y": 620,
+        "x": 580,
+        "y": 580,
         "wires": []
     },
     {
         "id": "524adb0f29677adf",
         "type": "debug",
         "z": "b9a028dd32a1df21",
-        "name": "DEBUG Gateway",
+        "name": "DEBUG MQTT",
         "active": true,
         "tosidebar": true,
         "console": true,
@@ -193,15 +174,15 @@
         "targetType": "full",
         "statusVal": "",
         "statusType": "auto",
-        "x": 800,
-        "y": 420,
+        "x": 470,
+        "y": 340,
         "wires": []
     },
     {
         "id": "9158acf805dfe91e",
         "type": "debug",
         "z": "b9a028dd32a1df21",
-        "name": "DEBUG Arduino",
+        "name": "DEBUG ARDUINO",
         "active": true,
         "tosidebar": true,
         "console": true,
@@ -210,7 +191,7 @@
         "targetType": "full",
         "statusVal": "",
         "statusType": "auto",
-        "x": 1050,
+        "x": 1060,
         "y": 340,
         "wires": []
     },
@@ -262,8 +243,8 @@
         "enablePointerup": false,
         "pointerupPayload": "",
         "pointerupPayloadType": "str",
-        "x": 1100,
-        "y": 600,
+        "x": 1080,
+        "y": 580,
         "wires": [
             [
                 "3f85afd35968c2e8"
@@ -277,8 +258,8 @@
         "name": "Dashboard",
         "ui": "d42540cdf04abf58",
         "events": "all",
-        "x": 890,
-        "y": 680,
+        "x": 870,
+        "y": 580,
         "wires": [
             [
                 "ad8363f63031ecd0"
@@ -291,8 +272,8 @@
         "z": "b9a028dd32a1df21",
         "name": "",
         "serial": "be7ab2eae4f8e1aa",
-        "x": 1500,
-        "y": 600,
+        "x": 1480,
+        "y": 580,
         "wires": []
     },
     {
@@ -308,7 +289,7 @@
         "targetType": "full",
         "statusVal": "",
         "statusType": "auto",
-        "x": 1510,
+        "x": 1490,
         "y": 640,
         "wires": []
     },
@@ -325,8 +306,8 @@
         "targetType": "full",
         "statusVal": "",
         "statusType": "auto",
-        "x": 730,
-        "y": 580,
+        "x": 590,
+        "y": 540,
         "wires": []
     },
     {
@@ -334,15 +315,15 @@
         "type": "function",
         "z": "b9a028dd32a1df21",
         "name": "send_test",
-        "func": "let arduinoCmd = {};\narduinoCmd.payload = msg.payload;\nreturn arduinoCmd;",
+        "func": "/*\nAngelo De Florio\nsend_test.js\n\nInvia una stringa di test all'Arduino\ntramite interfaccia grafica FlowFuse\n*/\nlet arduinoCmd = {};\narduinoCmd.payload = msg.payload;\nreturn arduinoCmd;",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 1300,
-        "y": 600,
+        "x": 1280,
+        "y": 580,
         "wires": [
             [
                 "8f0914faf37c5eb3",
@@ -351,10 +332,50 @@
         ]
     },
     {
+        "id": "27e838774c600943",
+        "type": "comment",
+        "z": "b9a028dd32a1df21",
+        "name": "Rilevamento dati del sensore ultrasuoni",
+        "info": "# Rilevamento dati del sensore ultrasuoni",
+        "x": 470,
+        "y": 220,
+        "wires": []
+    },
+    {
+        "id": "31a1f4bdbf0542a8",
+        "type": "comment",
+        "z": "b9a028dd32a1df21",
+        "name": "Simulazione sensore",
+        "info": "# Simulazione sensore",
+        "x": 310,
+        "y": 460,
+        "wires": []
+    },
+    {
+        "id": "4c8c1d69f5466860",
+        "type": "comment",
+        "z": "b9a028dd32a1df21",
+        "name": "Simulazione dati per InfluxDB",
+        "info": "# Simulazione dati per InfluxDB",
+        "x": 340,
+        "y": 540,
+        "wires": []
+    },
+    {
+        "id": "43aa15ea4767267c",
+        "type": "comment",
+        "z": "b9a028dd32a1df21",
+        "name": "Dashboard FlowFuse",
+        "info": "# Dashboard FlowFuse",
+        "x": 840,
+        "y": 540,
+        "wires": []
+    },
+    {
         "id": "28eabac030a8c20c",
         "type": "mqtt-broker",
         "name": "Local MQTT Broker",
-        "broker": "172.18.0.2",
+        "broker": "192.168.1.9",
         "port": 1883,
         "clientid": "nodered-gateway",
         "autoConnect": true,
@@ -455,7 +476,7 @@
         "type": "ui-page",
         "name": "Smart Tank Dashboard",
         "ui": "d42540cdf04abf58",
-        "path": "/dashboard",
+        "path": "",
         "icon": "home",
         "layout": "grid",
         "theme": "1d3355b619807ebc",
@@ -506,7 +527,7 @@
         }
     },
     {
-        "id": "3d3e1a59f029ee94",
+        "id": "90d931edd28d4163",
         "type": "global-config",
         "env": [],
         "modules": {
