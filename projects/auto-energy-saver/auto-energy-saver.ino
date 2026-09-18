@@ -2,7 +2,7 @@
 Angelo De Florio
 IIoT School Wiki
 
-==== auto-energy-saver.in ====
+==== auto-energy-saver.ino ====
 Programma principale per l'Arduino UNO R3 (NO WiFi):
 Il prototipo Arduino monta 2 componenti su di una Breadboard:
 - Sensore di tracciamento ad infrarossi (KY-033):
