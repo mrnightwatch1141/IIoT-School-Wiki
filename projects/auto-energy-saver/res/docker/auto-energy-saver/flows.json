@@ -29,7 +29,7 @@
         "type": "function",
         "z": "eb24743fea045b38",
         "name": "remote_power",
-        "func": "/*\nAngelo De Florio\nremote_power.js\n\nFunzione che serve a risvegliare la\nSmart Socket tramite sensore Arduino\nquando si è fuori dal raggio dell'Indoor Sensor\n*/\n// Costanti\nconst motion  = Number(msg.payload.motion);\nconst light   = Number(msg.payload.light);\n// Cooldown in millisecondi\nconst COOLDOWN = 5000; // 5 secondi\n\n// Stato precedente del sensore\nconst previousMotion = context.get(\"previousMotion\") || 0;\n\n// Istante dell'ultimo comando\nconst lastAction = context.get(\"lastAction\") || 0;\nconst now = Date.now();\n\nfunction createDownlink(hex, topic) {\n    let out = {};\n    out.topic = topic;\n    out.payload = {\n        \"confirmed\": false,\n        \"fPort\": 85,\n        \"data\": Buffer.from(hex, \"hex\").toString(\"base64\")\n    };\n    return out;\n}\n\n// Rilevamento automatico ambiente\nif (light < 150 && light > 100) {\n    node.status(\n        {\n            fill:\"brown\",\n            shape:\"ring\",\n            text:\"Stanza: soggiorno \" + light + \" lumens\"\n        }\n    );\n} else if (light < 300 && light > 200) {\n    node.status(\n        {\n            fill:\"blue\",\n            shape:\"ring\",\n            text: \"Stanza: bagno\" + light + \" lumens\"\n        }\n    );\n} else {\n    node.status(\n        {\n            fill:\"red\",\n            shape:\"ring\",\n            text: \"Stanza: non definita\" + light + \" lumens\"\n        }\n    )\n}\n\n// Memorizza lo stato attuale del sensore\ncontext.set(\"previousMotion\", motion);\n\n// Esegui il comando solo sul passaggio 0 -> 1\nconst newMotionEvent = (motion === 1 && previousMotion === 0);\n\nif (!newMotionEvent) {\n    return null;\n}\n\n// Controllo cooldown\nif (now - lastAction < COOLDOWN) {\n    node.warn(\"Comando ignorato: cooldown attivo\");\n    return null;\n}\n\n// Memorizza il momento dell'azione\ncontext.set(\"lastAction\", now);\n\nlet socketState = global.get(\"socketState\") || 0;\nlet downlinkHex;\n\nif (socketState !== 1) {\n    downlinkHex = \"080100ff\";\n    node.warn(\"Accensione remota della presa...\");\n    global.set(\"socketState\", 1);\n} else {\n    downlinkHex = \"080000ff\";\n    node.warn(\"Spegnimento remoto della presa...\");\n    global.set(\"socketState\", 0);\n}\n\nreturn createDownlink(\n    downlinkHex,\n    \"energysaver/downlink/24e124148c400670\"\n);",
+        "func": "/*\nAngelo De Florio\nremote_power.js\n\nFunzione che serve a risvegliare la\nSmart Socket tramite sensore Arduino\nquando si è fuori dal raggio dell'Indoor Sensor\n*/\n// Costanti\nconst motion  = Number(JSON.parse(msg.payload.motion));\nconst light   = Number(JSON.parse(msg.payload.light));\n// Cooldown in millisecondi\nconst COOLDOWN = 5000; // 5 secondi\n\n// Stato precedente del sensore\nconst previousMotion = context.get(\"previousMotion\") || 0;\n\n// Istante dell'ultimo comando\nconst lastAction = context.get(\"lastAction\") || 0;\nconst now = Date.now();\n\nfunction createDownlink(hex, topic) {\n    let out = {};\n    out.topic = topic;\n    out.payload = {\n        \"confirmed\": false,\n        \"fPort\": 85,\n        \"data\": Buffer.from(hex, \"hex\").toString(\"base64\")\n    };\n    return out;\n}\n\n// Rilevamento automatico ambiente\nif (light < 150 && light > 100) {\n    node.status(\n        {\n            fill:\"brown\",\n            shape:\"ring\",\n            text:\"Stanza: soggiorno \" + light + \" lumens\"\n        }\n    );\n} else if (light < 300 && light > 200) {\n    node.status(\n        {\n            fill:\"blue\",\n            shape:\"ring\",\n            text: \"Stanza: bagno\" + light + \" lumens\"\n        }\n    );\n} else {\n    node.status(\n        {\n            fill:\"red\",\n            shape:\"ring\",\n            text: \"Stanza: non definita\" + light + \" lumens\"\n        }\n    )\n}\n\n// Memorizza lo stato attuale del sensore\ncontext.set(\"previousMotion\", motion);\n\n// Esegui il comando solo sul passaggio 0 -> 1\nconst newMotionEvent = (motion === 1 && previousMotion === 0);\n\nif (!newMotionEvent) {\n    return null;\n}\n\n// Controllo cooldown\nif (now - lastAction < COOLDOWN) {\n    node.warn(\"Comando ignorato: cooldown attivo\");\n    return null;\n}\n\n// Memorizza il momento dell'azione\ncontext.set(\"lastAction\", now);\n\nlet socketState = global.get(\"socketState\") || 0;\nlet downlinkHex;\n\nif (socketState !== 1) {\n    downlinkHex = \"080100ff\";\n    node.warn(\"Accensione remota della presa...\");\n    global.set(\"socketState\", 1);\n} else {\n    downlinkHex = \"080000ff\";\n    node.warn(\"Spegnimento remoto della presa...\");\n    global.set(\"socketState\", 0);\n}\n\nreturn createDownlink(\n    downlinkHex,\n    \"energysaver/downlink/24e124148c400670\"\n);",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
@@ -380,9 +380,9 @@
         "id": "7596422cbcb1a35f",
         "type": "comment",
         "z": "eb24743fea045b38",
-        "name": "Rilevemento del movimento con sensore montato su Arduino",
-        "info": "# Rilevemento del movimento con sensore montato su Arduino",
-        "x": 280,
+        "name": "Spegnimento remoto Smart Socket con sensore montato su Arduino",
+        "info": "# Spegnimento remoto Smart Socket con sensore montato su Arduino",
+        "x": 300,
         "y": 200,
         "wires": []
     },
@@ -554,7 +554,7 @@
         "responsetimeout": 10000
     },
     {
-        "id": "a941ae50d7dd58f3",
+        "id": "d8165dbd523094fd",
         "type": "global-config",
         "env": [],
         "modules": {
