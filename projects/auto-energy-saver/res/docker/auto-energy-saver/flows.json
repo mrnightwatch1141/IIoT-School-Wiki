@@ -2,25 +2,10 @@
     {
         "id": "eb24743fea045b38",
         "type": "tab",
-        "label": "Auto Energy Saving",
+        "label": "Auto Energy Saver",
         "disabled": false,
         "info": "",
         "env": []
-    },
-    {
-        "id": "b23b8e0a429f04c0",
-        "type": "serial in",
-        "z": "eb24743fea045b38",
-        "name": "Arduino",
-        "serial": "0ee4a0a5866a5225",
-        "x": 310,
-        "y": 260,
-        "wires": [
-            [
-                "8f91ce462fdca3b7",
-                "0ba3be624fbcf520"
-            ]
-        ]
     },
     {
         "id": "8f91ce462fdca3b7",
@@ -43,8 +28,8 @@
         "id": "1a6ab0e5b1af51cd",
         "type": "function",
         "z": "eb24743fea045b38",
-        "name": "motion_parser",
-        "func": "/*\nAngelo De Florio\nmotion_parser.js\n*/\n// Costanti\nconst timeout = 0.1; // minuti\nconst motion  = Number(msg.payload.motion);\nconst light   = Number(msg.payload.light);\n\n\nfunction createDownlink(hex) {\n    let out = {};\n    out.topic = \"energysaver/downlink/24e124148c400670\";\n    out.payload = {\n        \"confirmed\": false,\n        \"fPort\": 85,\n        \"data\": Buffer.from(hex, \"hex\").toString(\"base64\")\n    };\n    return out;\n}\n\n\nlet lastMotion = global.get(\"lastMotion\") || Date.now();\nlet downlinkHex;\nif (motion === 1) {\n    downlinkHex = \"080100ff\";\n    global.set(\"lastMotion\", Date.now());\n    \n    node.status({\n        fill: \"green\",\n        shape: \"ring\",\n        text: \"Rilevato movimeto! Presa: \" + (global.get(\"socketState\") === 1 ? \"ON\" : \"OFF\")\n    });\n\n    if (global.get(\"socketState\") !== 1) {\n        node.warn(\"Accensione...\");\n        global.set(\"socketState\", 1);\n        return createDownlink(downlinkHex);\n    }\n\n    return null;\n}\n\nlet elapsed = (Date.now() - lastMotion) / 60000;\nnode.status({\n    fill: \"yellow\",\n    shape: \"ring\",\n    text: \"Assente da \" + elapsed.toFixed(3) + \" minuti. Presa: \" + (global.get(\"socketState\") === 1 ? \"ON\" : \"OFF\")\n});\n\nif (elapsed >= timeout && global.get(\"socketState\") !== 0) {\n    node.warn(\"Tempo scaduto! Spegnimento presa in corso...\");\n    downlinkHex = \"080000ff\";\n    global.set(\"socketState\", 0);\n    return createDownlink(downlinkHex);\n}\n\nreturn null;",
+        "name": "remote_power",
+        "func": "/*\nAngelo De Florio\nremote_power.js\n\nFunzione che serve a risvegliare la\nSmart Socket tramite sensore Arduino\nquando si è fuori dal raggio dell'Indoor Sensor\n*/\n// Costanti\nconst motion  = Number(msg.payload.motion);\nconst light   = Number(msg.payload.light);\n// Cooldown in millisecondi\nconst COOLDOWN = 5000; // 5 secondi\n\n// Stato precedente del sensore\nconst previousMotion = context.get(\"previousMotion\") || 0;\n\n// Istante dell'ultimo comando\nconst lastAction = context.get(\"lastAction\") || 0;\nconst now = Date.now();\n\nfunction createDownlink(hex, topic) {\n    let out = {};\n    out.topic = topic;\n    out.payload = {\n        \"confirmed\": false,\n        \"fPort\": 85,\n        \"data\": Buffer.from(hex, \"hex\").toString(\"base64\")\n    };\n    return out;\n}\n\n// Rilevamento automatico ambiente\nif (light < 150 && light > 100) {\n    node.status(\n        {\n            fill:\"brown\",\n            shape:\"ring\",\n            text:\"Stanza: soggiorno \" + light + \" lumens\"\n        }\n    );\n} else if (light < 300 && light > 200) {\n    node.status(\n        {\n            fill:\"blue\",\n            shape:\"ring\",\n            text: \"Stanza: bagno\" + light + \" lumens\"\n        }\n    );\n} else {\n    node.status(\n        {\n            fill:\"red\",\n            shape:\"ring\",\n            text: \"Stanza: non definita\" + light + \" lumens\"\n        }\n    )\n}\n\n// Memorizza lo stato attuale del sensore\ncontext.set(\"previousMotion\", motion);\n\n// Esegui il comando solo sul passaggio 0 -> 1\nconst newMotionEvent = (motion === 1 && previousMotion === 0);\n\nif (!newMotionEvent) {\n    return null;\n}\n\n// Controllo cooldown\nif (now - lastAction < COOLDOWN) {\n    node.warn(\"Comando ignorato: cooldown attivo\");\n    return null;\n}\n\n// Memorizza il momento dell'azione\ncontext.set(\"lastAction\", now);\n\nlet socketState = global.get(\"socketState\") || 0;\nlet downlinkHex;\n\nif (socketState !== 1) {\n    downlinkHex = \"080100ff\";\n    node.warn(\"Accensione remota della presa...\");\n    global.set(\"socketState\", 1);\n} else {\n    downlinkHex = \"080000ff\";\n    node.warn(\"Spegnimento remoto della presa...\");\n    global.set(\"socketState\", 0);\n}\n\nreturn createDownlink(\n    downlinkHex,\n    \"energysaver/downlink/24e124148c400670\"\n);",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
@@ -208,80 +193,6 @@
         "wires": []
     },
     {
-        "id": "a18d5f78c8d35b6f",
-        "type": "json",
-        "z": "eb24743fea045b38",
-        "name": "JSON Parser",
-        "property": "payload",
-        "action": "",
-        "pretty": false,
-        "x": 1190,
-        "y": 180,
-        "wires": [
-            [
-                "6f623c2575a4f426",
-                "a29c12b597938ecb"
-            ]
-        ]
-    },
-    {
-        "id": "2c2e1c47b453fcdf",
-        "type": "mqtt in",
-        "z": "eb24743fea045b38",
-        "name": "Smart Socket Status",
-        "topic": "energysaver/uplink/24e124148c400670",
-        "qos": "2",
-        "datatype": "auto-detect",
-        "broker": "adb875cc7d3588de",
-        "nl": false,
-        "rap": true,
-        "rh": 0,
-        "inputs": 0,
-        "x": 970,
-        "y": 180,
-        "wires": [
-            [
-                "a18d5f78c8d35b6f",
-                "dcfb31e2d6aa161b"
-            ]
-        ]
-    },
-    {
-        "id": "dcfb31e2d6aa161b",
-        "type": "debug",
-        "z": "eb24743fea045b38",
-        "name": "DEBUG MQTT STATUS SOCKET",
-        "active": true,
-        "tosidebar": true,
-        "console": true,
-        "tostatus": false,
-        "complete": "true",
-        "targetType": "full",
-        "statusVal": "",
-        "statusType": "auto",
-        "x": 1030,
-        "y": 240,
-        "wires": []
-    },
-    {
-        "id": "6f623c2575a4f426",
-        "type": "function",
-        "z": "eb24743fea045b38",
-        "name": "status_parser",
-        "func": "let payload;\n\ntry {\n    payload = JSON.parse(msg.payload);\n} catch (err) {\n    node.error(\"Payload JSON non valido\", msg);\nreturn null;\n\n}\n\nlet state = Number(payload.socket_status);\nnode.warn(\"Stato presa: \" + state);\nif (state === 1 || state === 0) {\n    global.set(\"socketState\", state);\n}\nreturn null;",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 1380,
-        "y": 180,
-        "wires": [
-            []
-        ]
-    },
-    {
         "id": "bfa2e81febb3f61c",
         "type": "debug",
         "z": "eb24743fea045b38",
@@ -296,23 +207,6 @@
         "statusType": "auto",
         "x": 620,
         "y": 360,
-        "wires": []
-    },
-    {
-        "id": "a29c12b597938ecb",
-        "type": "debug",
-        "z": "eb24743fea045b38",
-        "name": "DEBUG JSON STATUS SOCKET",
-        "active": true,
-        "tosidebar": true,
-        "console": true,
-        "tostatus": false,
-        "complete": "true",
-        "targetType": "full",
-        "statusVal": "",
-        "statusType": "auto",
-        "x": 1450,
-        "y": 240,
         "wires": []
     },
     {
@@ -358,15 +252,15 @@
         "id": "682f836dae375d72",
         "type": "function",
         "z": "eb24743fea045b38",
-        "name": "indoor_parser",
-        "func": "/*\nAngelo De Florio\nmotion_parser.js\n*/\n// Costanti\nconst timeout = 0.1; // minuti\nconst motion  = Number(JSON.parse(msg.payload).pir);\nnode.warn(motion);\n\nfunction createDownlink(hex) {\n    let out = {};\n    out.topic = \"energysaver/downlink/24e124148c400670\";\n    out.payload = {\n        \"confirmed\": false,\n        \"fPort\": 85,\n        \"data\": Buffer.from(hex, \"hex\").toString(\"base64\")\n    };\n    return out;\n}\n\n\nlet lastMotion = global.get(\"lastMotion\") || Date.now();\nlet downlinkHex;\nif (motion === 1) {\n    downlinkHex = \"080100ff\";\n    global.set(\"lastMotion\", Date.now());\n    \n    node.status({\n        fill: \"green\",\n        shape: \"ring\",\n        text: \"Rilevato movimeto! Presa: \" + (global.get(\"socketState\") === 1 ? \"ON\" : \"OFF\")\n    });\n\n    if (global.get(\"socketState\") !== 1) {\n        node.warn(\"Accensione...\");\n        global.set(\"socketState\", 1);\n        return createDownlink(downlinkHex);\n    }\n\n    return null;\n}\n\nlet elapsed = (Date.now() - lastMotion) / 60000;\nnode.status({\n    fill: \"yellow\",\n    shape: \"ring\",\n    text: \"Assente da \" + elapsed.toFixed(3) + \" minuti. Presa: \" + (global.get(\"socketState\") === 1 ? \"ON\" : \"OFF\")\n});\n\nif (elapsed >= timeout && global.get(\"socketState\") !== 0) {\n    node.warn(\"Tempo scaduto! Spegnimento presa in corso...\");\n    downlinkHex = \"080000ff\";\n    global.set(\"socketState\", 0);\n    return createDownlink(downlinkHex);\n}\n\nreturn null;",
+        "name": "indoor_motion_parser",
+        "func": "/*\nAngelo De Florio\nindoor_motion_parser.js\n*/\n// Costanti\nconst timeout = 0.1; // minuti\nconst motion  = Number(JSON.parse(msg.payload).pir);\nconst light   = Number(JSON.parse(msg.payload).light_level);\nnode.warn(motion);\n\nfunction createDownlink(hex) {\n    let out = {};\n    out.topic = \"energysaver/downlink/24e124148c400670\";\n    out.payload = {\n        \"confirmed\": false,\n        \"fPort\": 85,\n        \"data\": Buffer.from(hex, \"hex\").toString(\"base64\")\n    };\n    return out;\n}\n\n\nlet lastMotion = global.get(\"lastMotion\") || Date.now();\nlet downlinkHex;\nif (motion === 1 || light === 1) {\n    downlinkHex = \"080100ff\";\n    global.set(\"lastMotion\", Date.now());\n    \n    node.status({\n        fill: \"green\",\n        shape: \"ring\",\n        text: \"Rilevato movimeto! Presa: \" + (global.get(\"socketState\") === 1 ? \"ON\" : \"OFF\")\n    });\n\n    if (global.get(\"socketState\") !== 1) {\n        node.warn(\"Accensione...\");\n        global.set(\"socketState\", 1);\n        return createDownlink(downlinkHex);\n    }\n\n    return null;\n}\n\nlet elapsed = (Date.now() - lastMotion) / 60000;\nnode.status({\n    fill: \"yellow\",\n    shape: \"ring\",\n    text: \"Assente da \" + elapsed.toFixed(3) + \" minuti. Presa: \" + (global.get(\"socketState\") === 1 ? \"ON\" : \"OFF\")\n});\n\nif (elapsed >= timeout && global.get(\"socketState\") !== 0) {\n    node.warn(\"Tempo scaduto! Spegnimento presa in corso...\");\n    downlinkHex = \"080000ff\";\n    global.set(\"socketState\", 0);\n    return createDownlink(downlinkHex);\n}\n\nreturn null;",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 780,
+        "x": 800,
         "y": 480,
         "wires": [
             [
@@ -466,19 +360,19 @@
         "id": "d11dd098290ccd60",
         "type": "comment",
         "z": "eb24743fea045b38",
-        "name": "",
+        "name": "Test payload di accesione/spegnimento Smart Socket",
         "info": "# Test payload di accesione/spegnimento Smart Socket\nInvia in payload downlink per l'accensione o lo spegnimento\nper identificare la struttura JSON del payload",
-        "x": 480,
-        "y": 680,
+        "x": 620,
+        "y": 660,
         "wires": []
     },
     {
         "id": "fff0e1a01cd41f25",
         "type": "comment",
         "z": "eb24743fea045b38",
-        "name": "",
+        "name": "Rilevemento del movimento con l'Indoor Ambience Monitor Sensor AM319-HCHO",
         "info": "# Rilevemento del movimento con l'Indoor Ambience Monitor Sensor AM319-HCHO",
-        "x": 200,
+        "x": 280,
         "y": 440,
         "wires": []
     },
@@ -486,41 +380,127 @@
         "id": "7596422cbcb1a35f",
         "type": "comment",
         "z": "eb24743fea045b38",
-        "name": "",
+        "name": "Rilevemento del movimento con sensore montato su Arduino",
         "info": "# Rilevemento del movimento con sensore montato su Arduino",
-        "x": 300,
+        "x": 280,
+        "y": 200,
+        "wires": []
+    },
+    {
+        "id": "b23b8e0a429f04c0",
+        "type": "serial in",
+        "z": "eb24743fea045b38",
+        "name": "Arduino",
+        "serial": "0ee4a0a5866a5225",
+        "x": 310,
+        "y": 260,
+        "wires": [
+            [
+                "8f91ce462fdca3b7",
+                "0ba3be624fbcf520"
+            ]
+        ]
+    },
+    {
+        "id": "9e83423aa919097c",
+        "type": "json",
+        "z": "eb24743fea045b38",
+        "name": "JSON Parser",
+        "property": "payload",
+        "action": "",
+        "pretty": false,
+        "x": 1290,
+        "y": 160,
+        "wires": [
+            [
+                "649a2b9327ca3088",
+                "fd688659c4ef242c"
+            ]
+        ]
+    },
+    {
+        "id": "9638711b36625390",
+        "type": "mqtt in",
+        "z": "eb24743fea045b38",
+        "name": "Smart Socket Status",
+        "topic": "energysaver/uplink/24e124148c400670",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "adb875cc7d3588de",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 1070,
+        "y": 160,
+        "wires": [
+            [
+                "9e83423aa919097c",
+                "385e64ad01071fb5"
+            ]
+        ]
+    },
+    {
+        "id": "385e64ad01071fb5",
+        "type": "debug",
+        "z": "eb24743fea045b38",
+        "name": "DEBUG MQTT STATUS SOCKET",
+        "active": true,
+        "tosidebar": true,
+        "console": true,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1130,
         "y": 220,
         "wires": []
     },
     {
-        "id": "e565912d9619e042",
-        "type": "comment",
+        "id": "649a2b9327ca3088",
+        "type": "function",
         "z": "eb24743fea045b38",
-        "name": "",
-        "info": "# Rilevamento dello stato della presa",
-        "x": 1000,
-        "y": 140,
+        "name": "status_parser",
+        "func": "let payload;\n\ntry {\n    payload = JSON.parse(msg.payload);\n} catch (err) {\n    node.error(\"Payload JSON non valido\", msg);\nreturn null;\n\n}\n\nlet state = Number(payload.socket_status);\nnode.warn(\"Stato presa: \" + state);\nif (state === 1 || state === 0) {\n    global.set(\"socketState\", state);\n}\nreturn null;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1480,
+        "y": 160,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "fd688659c4ef242c",
+        "type": "debug",
+        "z": "eb24743fea045b38",
+        "name": "DEBUG JSON STATUS SOCKET",
+        "active": true,
+        "tosidebar": true,
+        "console": true,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1550,
+        "y": 220,
         "wires": []
     },
     {
-        "id": "0ee4a0a5866a5225",
-        "type": "serial-port",
-        "name": "Arduino",
-        "serialport": "/dev/ttyACM0",
-        "serialbaud": "9600",
-        "databits": 8,
-        "parity": "none",
-        "stopbits": 1,
-        "waitfor": "",
-        "dtr": "none",
-        "rts": "none",
-        "cts": "none",
-        "dsr": "none",
-        "newline": "\\n",
-        "bin": "false",
-        "out": "char",
-        "addchar": "",
-        "responsetimeout": 10000
+        "id": "eb1fc40871ad7b76",
+        "type": "comment",
+        "z": "eb24743fea045b38",
+        "name": "Rilevamento dello stato della presa",
+        "info": "# Rilevamento dello stato della presa",
+        "x": 1060,
+        "y": 120,
+        "wires": []
     },
     {
         "id": "adb875cc7d3588de",
@@ -554,7 +534,27 @@
         "sessionExpiry": ""
     },
     {
-        "id": "ab67e2fcccf6722f",
+        "id": "0ee4a0a5866a5225",
+        "type": "serial-port",
+        "name": "Arduino",
+        "serialport": "/dev/ttyACM0",
+        "serialbaud": "9600",
+        "databits": 8,
+        "parity": "none",
+        "stopbits": 1,
+        "waitfor": "",
+        "dtr": "none",
+        "rts": "none",
+        "cts": "none",
+        "dsr": "none",
+        "newline": "\\n",
+        "bin": "false",
+        "out": "char",
+        "addchar": "",
+        "responsetimeout": 10000
+    },
+    {
+        "id": "a941ae50d7dd58f3",
         "type": "global-config",
         "env": [],
         "modules": {
