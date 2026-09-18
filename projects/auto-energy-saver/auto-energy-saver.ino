@@ -6,17 +6,17 @@ IIoT School Wiki
 Programma principale per l'Arduino UNO R3 (NO WiFi):
 Il prototipo Arduino monta 2 componenti su di una Breadboard:
 - Sensore di tracciamento ad infrarossi (KY-033):
-  Traccerà il movimento ravvicinato della persona e ne segnalerà la presenza
-  con l'accensione del LED integrato;
+  Traccerà il movimento ravvicinato, segnalerà la presenza
+  con l'accensione del LED integrato ed invierà l'INPUT;
 - Fotoresistor (KY-018):
   Rileva il livello di luminosità nella stanza.
 */
 
 // Costanti componenti
 // IR Tracker
-const byte TRACKING_PIN               = 8;
+const byte TRACKING_PIN       = 8;
 // Fotoresistor
-const byte PHOTORESISTOR_PIN          = A0;
+const byte PHOTORESISTOR_PIN  = A0;
 
 /*
 Costante delay:
@@ -26,7 +26,7 @@ a causa dell'immediatezza della misurazione
 const unsigned long INTERVALLO_INVIO  = 250; // ms
 
 /*
-Variabili globale per l'ultimo invio delle misurazioni:
+Variabile globale per l'ultimo invio delle misurazioni:
 memorizza i millisecondi trascorsi tra un invio e l'altro.
 */
 unsigned long ultimoInvio = 0;
@@ -83,7 +83,7 @@ void loop() {
     trackingState = digitalRead(TRACKING_PIN);
     // Se il sensore restituisce LOW...
     if (trackingState == LOW) {
-      // Ha rilevato l'ostacolo, quindi l'oggetto/persona vicina
+      // Ha rilevato l'ostacolo, quindi l'oggetto vicino
       ostacolo = 1;
     } else {
       // Altrimenti la strada del sensore è libera (HIGH)
