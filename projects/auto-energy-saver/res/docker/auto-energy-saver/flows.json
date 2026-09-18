@@ -110,7 +110,7 @@
         "type": "function",
         "z": "eb24743fea045b38",
         "name": "socket_power",
-        "func": "let out;\nif (msg.payload) {\n    out = {};\n    out.topic = \"energysaver/downlink/24e124148c400670\";\n    out.payload = {\n        \"confirmed\" : false,\n        \"fPort\"     : 85,\n        \"data\"      : Buffer.from(\"080100ff\", \"hex\").toString(\"base64\")\n    };\n    return out;\n}\n\nout = {};\nout.topic = \"energysaver/downlink/24e124148c400670\";\nout.payload = {\n    \"confirmed\" : false,\n    \"fPort\"     : 85,\n    \"data\"      : Buffer.from(\"080000ff\", \"hex\").toString(\"base64\")\n};\nreturn out;",
+        "func": "/*\nAngelo De Florio\nsocket_power.js\n*/\nlet out;\nif (msg.payload) {\n    out = {};\n    out.topic = \"energysaver/downlink/24e124148c400670\";\n    out.payload = {\n        \"confirmed\" : false,\n        \"fPort\"     : 85,\n        \"data\"      : Buffer.from(\"080100ff\", \"hex\").toString(\"base64\")\n    };\n    return out;\n}\n\nout = {};\nout.topic = \"energysaver/downlink/24e124148c400670\";\nout.payload = {\n    \"confirmed\" : false,\n    \"fPort\"     : 85,\n    \"data\"      : Buffer.from(\"080000ff\", \"hex\").toString(\"base64\")\n};\nreturn out;",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
@@ -197,7 +197,7 @@
         "type": "debug",
         "z": "eb24743fea045b38",
         "name": "DEBUG JSON ARDUINO",
-        "active": true,
+        "active": false,
         "tosidebar": true,
         "console": true,
         "tostatus": false,
@@ -554,7 +554,7 @@
         "responsetimeout": 10000
     },
     {
-        "id": "4a6927ae6ca55487",
+        "id": "487fe5ec96f88995",
         "type": "global-config",
         "env": [],
         "modules": {
