@@ -12,7 +12,7 @@
         "type": "mqtt in",
         "z": "b9a028dd32a1df21",
         "name": "Ultrasonic Sensor LoRaWAN",
-        "topic": "milesight/uplink",
+        "topic": "smarttank/uplink",
         "qos": "0",
         "datatype": "auto-detect",
         "broker": "28eabac030a8c20c",
@@ -527,7 +527,7 @@
         }
     },
     {
-        "id": "90d931edd28d4163",
+        "id": "eebdb77870dea75a",
         "type": "global-config",
         "env": [],
         "modules": {
