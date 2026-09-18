@@ -1,6 +1,9 @@
 /*
 Angelo De Florio
 indoor_motion_parser.js
+
+Rileva la presenza/assenza di
+movimento e luce (NON l'intensità)
 */
 // Costanti
 const timeout = 0.1; // minuti
