@@ -14,6 +14,9 @@ Funzionamento:
     Permette di creare un payload Downlink
     in JSON per inviare determinati
     comandi come l'accensione e lo spegnimento
+
+Parametri:
+    - hex: valore esadecimale del payload
 */
 function createDownlink(hex) {
     let out = {};

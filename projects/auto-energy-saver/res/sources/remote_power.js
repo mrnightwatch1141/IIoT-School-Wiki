@@ -9,7 +9,12 @@ seriale
 // Costanti
 const motion  = Number(JSON.parse(msg.payload.motion));
 const light   = Number(JSON.parse(msg.payload.light));
-// Cooldown in millisecondi
+/*
+Cooldown in millisecondi:
+L'implementazione del cooldown è fondamentale per
+assicurarsi che la Smart Socket non riceva
+comandi di accensione/spegnimento ripetutamente
+*/
 const COOLDOWN = 5000; // 5 secondi
 
 // Stato precedente del sensore
@@ -19,6 +24,17 @@ const previousMotion = context.get("previousMotion") || 0;
 const lastAction = context.get("lastAction") || 0;
 const now = Date.now();
 
+/*
+Funzione createDownlink(hex):
+Funzionamento:
+    Permette di creare un payload Downlink
+    in JSON per inviare determinati
+    comandi come l'accensione e lo spegnimento
+
+Parametri:
+    - hex:   valore esadecimale del payload
+    - topic: specifica l'argomento MQTT su cui pubblicare il messaggio
+*/
 function createDownlink(hex, topic) {
     let out = {};
     out.topic = topic;
@@ -44,7 +60,7 @@ if (light < 150 && light > 100) {
         {
             fill:"blue",
             shape:"ring",
-            text: "Stanza: bagno" + light + " lumens"
+            text: "Stanza: bagno " + light + " lumens"
         }
     );
 } else {
@@ -52,7 +68,7 @@ if (light < 150 && light > 100) {
         {
             fill:"red",
             shape:"ring",
-            text: "Stanza: non definita" + light + " lumens"
+            text: "Stanza: non definita " + light + " lumens"
         }
     )
 }
@@ -76,6 +92,7 @@ if (now - lastAction < COOLDOWN) {
 // Memorizza il momento dell'azione
 context.set("lastAction", now);
 
+// Variabile che riceve lo stato globale della presa
 let socketState = global.get("socketState") || 0;
 let downlinkHex;
 
@@ -89,6 +106,7 @@ if (socketState !== 1) {
     global.set("socketState", 0);
 }
 
+// Creazione del payload downlink
 return createDownlink(
     downlinkHex,
     "energysaver/downlink/24e124148c400670"
