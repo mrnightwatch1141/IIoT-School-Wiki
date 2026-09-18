@@ -73,7 +73,11 @@ if (light < 150 && light > 100) {
     )
 }
 
-// Memorizza lo stato attuale del sensore
+/*
+Memorizza lo stato attuale del sensore memorizzando il contesto.
+Il contesto in Node-RED serve a memorizzare dati e condividere
+informazioni tra i nodi al di fuori del normale flusso dei messaggi
+*/
 context.set("previousMotion", motion);
 
 // Esegui il comando solo sul passaggio 0 -> 1
