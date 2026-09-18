@@ -1,0 +1,12 @@
+services:
+  nodered:
+    image: nodered/node-red:latest
+    container_name: node-red
+    restart: always
+    privileged: true
+    ports:
+      - "1880:1880"
+    volumes:
+      - ./node-red-data:/data
+    devices:
+      - "/dev/ttyACM0:/dev/ttyACM0" # Arduino
