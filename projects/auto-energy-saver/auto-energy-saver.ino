@@ -81,19 +81,19 @@ void loop() {
 
     // Leggi lo stato dell'IR Tracker
     trackingState = digitalRead(TRACKING_PIN);
-    // Se è LOW...
+    // Se il sensore restituisce LOW...
     if (trackingState == LOW) {
       // Ha rilevato l'ostacolo, quindi l'oggetto/persona vicina
       ostacolo = 1;
     } else {
-      // Altrimenti la strada del sensore è libera
+      // Altrimenti la strada del sensore è libera (HIGH)
       ostacolo = 0;
     }
 
     // Invio di un JSON via seriale con i valori misurati
-    Serial.print("{\"motion\":");
+    Serial.print("{\"motion\":"); // motion: 1 o 0
     Serial.print(ostacolo);
-    Serial.print(",\"light\":");
+    Serial.print(",\"light\":"); // light: valore della luce 
     Serial.print(valoreLuce);
     Serial.println("}");
   }
