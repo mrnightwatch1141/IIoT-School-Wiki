@@ -117,6 +117,9 @@ ul {
 article {
   scroll-margin-top: 120px;
 }
+p {
+  text-align: justify;
+}
 
 /* Card */
 .card-img-top {
