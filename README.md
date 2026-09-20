@@ -18,5 +18,10 @@ Documentare il funzionamento del materiale fornito attraverso dei progetti legat
 ## Struttura della Wiki
 La Wiki può essere consultata nei seguenti *tre* formati:
 - [GitHub](https://github.com/mrnightwatch1141/IIoT-School-Wiki/wiki/1.-Home)
-- PDF
-- Pagina Web
+- PDF (Coming Soon...)
+- Pagina Web (Coming soon...)
+
+## Credits
+_Fondatore, scrittore e programmazione_: **Angelo De Florio**
+<br>
+_Supporters_: **Arcangelo Gabriele Dispoto, Alessandro Cassone e Maurizio Mazzeo**
