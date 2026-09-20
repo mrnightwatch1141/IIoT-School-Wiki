@@ -1,0 +1,232 @@
+[
+    {
+        "id": "8da90486b93877a5",
+        "type": "tab",
+        "label": "Smart Green House",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "4b2f547ce3d5b2dd",
+        "type": "http in",
+        "z": "8da90486b93877a5",
+        "name": "ChirpStack HTTP IN",
+        "url": "/chirpstack-data",
+        "method": "post",
+        "upload": false,
+        "skipBodyParsing": false,
+        "swaggerDoc": "",
+        "x": 350,
+        "y": 360,
+        "wires": [
+            [
+                "a1f389eefa3504ee",
+                "524ad6da05620d0c"
+            ]
+        ]
+    },
+    {
+        "id": "a1f389eefa3504ee",
+        "type": "json",
+        "z": "8da90486b93877a5",
+        "name": "JSON Parser",
+        "property": "payload",
+        "action": "obj",
+        "pretty": false,
+        "x": 670,
+        "y": 360,
+        "wires": [
+            [
+                "77e2e5d96d7451dd",
+                "7753a69c07baca87"
+            ]
+        ]
+    },
+    {
+        "id": "77e2e5d96d7451dd",
+        "type": "function",
+        "z": "8da90486b93877a5",
+        "name": "extract_data",
+        "func": "/*\nAngelo De Florio\nextract_data.js\n\nFunzione che estrae i dati JSON di ChirpStack\n*/\nlet payload = msg.payload;\nlet devEUI;\n// Estrazione del devEUI\nif (payload.deviceInfo) {\n    devEUI = payload.deviceInfo.devEui;\n} else {\n    devEUI = \"Sconosciuto\";\n}\nlet data = payload.object;\n\nlet sensorType     =  \"Unknown\";\nlet extractedValue =  null;\nlet metricName     =  \"\";\n\n// Controllo per il sensore Ursalink EM500-SWL (Umidità del terreno)\nif (data && data.moisture !== undefined) {\n    sensorType     = \"Ursalink EM500-SWL | Terreno\";\n    extractedValue = data.moisture;\n    metricName     = \"% Umidità suolo\";\n}\n// Controllo per il sensore Milesight AM319-HCHO (HCHO)\nelse if (data && data.hcho !== undefined) {\n    sensorType     = \"Milesight AM319-HCHO | HCHO\";\n    extractedValue = data.hcho;\n    metricName     = \"mg/m^3 HCHO\";\n}\n// Controllo per il sensore Milesight EM300-SDL (Leak)\nelse if (data && data.leakage_status !== undefined) {\n    sensorType     = \"Milesight EM300-SDL | Leakage Status\";\n    extractedValue = data.leakage_status;\n}\n\n// Creazione del payload JSON con tutti i dati\nmsg.payload = {\n    devEUI : devEUI,\n    sensor : sensorType,\n    value  : extractedValue,\n    unit   : metricName,\n    raw    : data\n};\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 950,
+        "y": 360,
+        "wires": [
+            [
+                "9b87121fa02e63e2",
+                "62b0736b9bc46473"
+            ]
+        ]
+    },
+    {
+        "id": "9b87121fa02e63e2",
+        "type": "change",
+        "z": "8da90486b93877a5",
+        "name": "",
+        "rules": [
+            {
+                "t": "set",
+                "p": "sensor_value",
+                "pt": "global",
+                "to": "payload.value",
+                "tot": "msg"
+            },
+            {
+                "t": "set",
+                "p": "sensor_name",
+                "pt": "global",
+                "to": "payload.sensor",
+                "tot": "msg"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 1200,
+        "y": 360,
+        "wires": [
+            [
+                "4bef31825dabd287"
+            ]
+        ]
+    },
+    {
+        "id": "4bef31825dabd287",
+        "type": "http response",
+        "z": "8da90486b93877a5",
+        "name": "ChirpStack HTTP RESPONSE",
+        "statusCode": "",
+        "headers": {},
+        "x": 1510,
+        "y": 360,
+        "wires": []
+    },
+    {
+        "id": "524ad6da05620d0c",
+        "type": "debug",
+        "z": "8da90486b93877a5",
+        "name": "DEBUG CHIRPSTACK HTTP IN",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 390,
+        "y": 420,
+        "wires": []
+    },
+    {
+        "id": "7753a69c07baca87",
+        "type": "debug",
+        "z": "8da90486b93877a5",
+        "name": "DEBUG JSON PARSER",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 710,
+        "y": 420,
+        "wires": []
+    },
+    {
+        "id": "62b0736b9bc46473",
+        "type": "debug",
+        "z": "8da90486b93877a5",
+        "name": "DEBUG JAVASCRIPT",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 980,
+        "y": 420,
+        "wires": []
+    },
+    {
+        "id": "7a62bfb4b1a995a5",
+        "type": "http in",
+        "z": "8da90486b93877a5",
+        "name": "API Arduino",
+        "url": "/arduino-status",
+        "method": "get",
+        "upload": false,
+        "skipBodyParsing": false,
+        "swaggerDoc": "",
+        "x": 370,
+        "y": 540,
+        "wires": [
+            [
+                "a2260ef8ae2f5619"
+            ]
+        ]
+    },
+    {
+        "id": "a2260ef8ae2f5619",
+        "type": "function",
+        "z": "8da90486b93877a5",
+        "name": "recover_sensor_value",
+        "func": "/*\nAngelo De Florio\nrecover_sensor_value.js\n\nFunzione che recupera l'ultimo\nvalore salvato dai sensori\n*/\nlet val = global.get(\"sensor_value\") || 0;\nlet sensorName = global.get(\"sensor_name\") || \"Unknown\";\n\n// Risposta JSON da inviare all'Arduino\nmsg.payload = {\n    sensor : sensorName,\n    value  : val\n};\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 700,
+        "y": 540,
+        "wires": [
+            [
+                "e0bfc67d187cec17"
+            ]
+        ]
+    },
+    {
+        "id": "e0bfc67d187cec17",
+        "type": "http response",
+        "z": "8da90486b93877a5",
+        "name": "API Arduino RESPONSE",
+        "statusCode": "",
+        "headers": {},
+        "x": 990,
+        "y": 540,
+        "wires": []
+    },
+    {
+        "id": "f3dd7eba57244bfb",
+        "type": "comment",
+        "z": "8da90486b93877a5",
+        "name": "Gestione e archiviazione richieste ChirpStack",
+        "info": "",
+        "x": 430,
+        "y": 320,
+        "wires": []
+    },
+    {
+        "id": "bb336776eaca5758",
+        "type": "comment",
+        "z": "8da90486b93877a5",
+        "name": "Gestione e archiviazione richieste ChirpStack",
+        "info": "",
+        "x": 470,
+        "y": 500,
+        "wires": []
+    }
+]
