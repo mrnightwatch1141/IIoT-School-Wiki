@@ -244,5 +244,6 @@ void loop() {
     noTone(BUZZER);
   }
 
+  // Interrogo l'endpoint ogni 5 secondi
   delay(5000);
 }
