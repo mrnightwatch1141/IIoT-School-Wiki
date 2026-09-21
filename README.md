@@ -6,12 +6,12 @@ Documentare il funzionamento del materiale fornito attraverso dei progetti legat
 
 ## Lista del materiale
 - Arduino Student Kit x1
-- Ursalink Environment Monitoring Sensor x1
-- Milesight LoRa Portable Socket x1
-- Milesight LoRa IoT Sensor x1
-- Milesight LoRaWAN IoT Ultrasonic Distance Sensor x1
-- Milesight LoRa Gateway x1
-- Milesight Indoor Ambience Monitoring Sensor LoRaWAN x1
+- Ursalink Environment Monitoring Sensor x1 (EM500-SMT)
+- Milesight LoRa Portable Socket x1 (WS522)
+- Milesight LoRa IoT Sensor x1 (EM300-SDL)
+- Milesight LoRaWAN IoT Ultrasonic Distance Sensor x1 (EM310-UDL)
+- Milesight LoRa Gateway x1 (UG65)
+- Milesight Indoor Ambience Monitoring Sensor LoRaWAN x1 (AM319-HCHO)
 - CompuStore kit 37 sensori per Arduino x1
 - CanaKit (Raspberry + Arduino) x1
 
